@@ -24,7 +24,8 @@ import string
 import sys
 
 
-CARACTERES_SPECIAUX = r"!@#$%&*?~-_=+^µàçù([/\])"
+CARACTERES_SPECIAUX = r"!@#$%&*?~-_=+^([/])"
+CARACTERES_ETENDUS = "\\µàçù"
 CARACTERES_SIMILAIRES = "0O1lI()"
 LONGUEUR_MAXIMALE = 4096
 NOMBRE_MAXIMAL = 100
@@ -78,15 +79,20 @@ def demander_oui_non(question, valeur_defaut):
         print(colorer("Réponds par o ou n.", "rouge"))
 
 
-def choisir_groupes(avec_speciaux, sans_similaires):
+def choisir_groupes(avec_speciaux, sans_similaires, avec_etendus=False):
     """Préparer les catégories de caractères autorisés."""
     groupes = [string.ascii_lowercase, string.ascii_uppercase, string.digits]
     if avec_speciaux:
-        groupes.append(CARACTERES_SPECIAUX)
+        caracteres_speciaux = CARACTERES_SPECIAUX
+        if avec_etendus:
+            caracteres_speciaux += CARACTERES_ETENDUS
+        groupes.append(caracteres_speciaux)
     if sans_similaires:
         groupes = [
-            "".join(caractere for caractere in groupe
-                    if caractere not in CARACTERES_SIMILAIRES)
+            "".join(
+                caractere for caractere in groupe
+                if caractere not in CARACTERES_SIMILAIRES
+            )
             for groupe in groupes
         ]
     return groupes
@@ -119,10 +125,10 @@ def evaluer_robustesse(longueur, groupes):
 
 
 def afficher_resultats(nombre, longueur, avec_speciaux,
-                       sans_similaires):
+                       sans_similaires, avec_etendus=False):
     """Générer et afficher les mots de passe et leur robustesse."""
 
-    groupes = choisir_groupes(avec_speciaux, sans_similaires)
+    groupes = choisir_groupes(avec_speciaux, sans_similaires, avec_etendus)
     minimum = len(groupes)
 
     if not minimum <= longueur <= LONGUEUR_MAXIMALE:
@@ -193,6 +199,12 @@ def menu_interactif():
         avec_speciaux = demander_oui_non(
             "Inclure les caractères spéciaux ? (o/n) [o] : ", True
         )
+        avec_etendus = False
+        if avec_speciaux:
+            avec_etendus = demander_oui_non(
+                r"Inclure \, µ, à, ç, ù ? (o/n) [n] : ",
+                False
+            )
         sans_similaires = demander_oui_non(
             "Exclure 0, O, 1, l et I ? (o/n) [o] : ", True
         )
@@ -201,7 +213,7 @@ def menu_interactif():
             4 if avec_speciaux else 3, LONGUEUR_MAXIMALE, 20
         )
         afficher_resultats(nombre, longueur, avec_speciaux,
-                           sans_similaires)
+                           sans_similaires, avec_etendus)
 
 
 def principal():
@@ -235,9 +247,17 @@ def principal():
         "--sans-couleurs", action="store_true",
         help="désactiver les couleurs dans le terminal"
     )
+    analyseur.add_argument(
+        "--avec-etendus",
+        action="store_true",
+        help="autoriser les caractères spéciaux étendus"
+    )
     arguments = analyseur.parse_args()
     if arguments.sans_couleurs:
         COULEURS_ACTIVES = False
+
+    if arguments.avec_etendus and not arguments.avec_speciaux:
+        analyseur.error("--avec-etendus nécessite --avec-speciaux")
 
     if len(sys.argv) == 1:
         try:
@@ -252,6 +272,7 @@ def principal():
             arguments.longueur,
             arguments.avec_speciaux,
             arguments.sans_similaires,
+            arguments.avec_etendus
         )
     except ValueError as erreur:
         analyseur.error(str(erreur))
