@@ -1,0 +1,18 @@
+# Fichiers temporaires Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnements virtuels
+.venv/
+venv/
+
+# Fichiers privés ou temporaires
+.env
+.env.*
+*.log
+*.tmp
+
+# Editeurs
+.vscode/
+.idea/
