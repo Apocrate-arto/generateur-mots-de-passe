@@ -37,10 +37,16 @@ Menu interactif :
 ./generateur.py
 ```
 
-Générer 3 mots de passe de 20 caractères :
+Générer 3 mots de passe de 20 caractères avec symboles ASCII classiques :
 
 ```bash
 ./generateur.py -n 3 -l 20 --avec-speciaux
+```
+
+Générer 3 mots de passe de 20 caractères avec symboles classiques et étendus :
+
+```bash
+./generateur.py -n 3 -l 20 --avec-speciaux --avec-etendus
 ```
 
 Exclure les caractères similaires :
